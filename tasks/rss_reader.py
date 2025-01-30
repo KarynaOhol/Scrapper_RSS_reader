@@ -13,32 +13,85 @@ class UnhandledException(Exception):
     pass
 
 
-def parse_channel(channel: ET.Element) -> dict:
+def parse_channel(channel: ET.Element, json_output: bool = False) -> dict:
     """Parse channel element from RSS feed."""
-    result = {
-        'title': channel.find('title').text if channel.find('title') is not None else '',
-        'link': channel.find('link').text if channel.find('link') is not None else '',
-        'lastBuildDate': channel.find('lastBuildDate').text if channel.find('lastBuildDate') is not None else '',
-        'pubDate': channel.find('pubDate').text if channel.find('pubDate') is not None else '',
-        'language': channel.find('language').text if channel.find('language') is not None else '',
-        'categories': [cat.text for cat in channel.findall('category')],
-        'managingEditor': channel.find('managingEditor').text if channel.find('managingEditor') is not None else '',
-        'description': channel.find('description').text if channel.find('description') is not None else '',
-        'items': []
-    }
+    result = {}
+
+    # Required fields
+    for field in ['title', 'link', 'description']:
+        elem = channel.find(field)
+        if elem is not None and elem.text:
+            result[field] = elem.text
+
+    # Optional fields - only include if present and json_output is False
+    if not json_output:
+        optional_fields = {
+            'lastBuildDate': 'lastBuildDate',
+            'pubDate': 'pubDate',
+            'language': 'language',
+            'managingEditor': 'managingEditor'
+        }
+
+        for field, key in optional_fields.items():
+            elem = channel.find(field)
+            if elem is not None and elem.text:
+                result[key] = elem.text
+            else:
+                result[key] = ''
+
+        # Handle categories
+        categories = channel.findall('category')
+        result['categories'] = [cat.text for cat in categories] if categories else []
+    else:
+        # For JSON output, only include non-empty optional fields
+        optional_fields = {
+            'lastBuildDate': 'lastBuildDate',
+            'pubDate': 'pubDate',
+            'language': 'language',
+            'managingEditor': 'managingEditor',
+            'category': 'categories'
+        }
+
+        for field, key in optional_fields.items():
+            if field == 'category':
+                categories = channel.findall(field)
+                if categories:
+                    result[key] = [cat.text for cat in categories]
+            else:
+                elem = channel.find(field)
+                if elem is not None and elem.text:
+                    result[key] = elem.text
+
+    result['items'] = []
     return result
 
 
-def parse_item(item: ET.Element) -> dict:
+def parse_item(item: ET.Element, json_output: bool = False) -> dict:
     """Parse item element from RSS feed."""
-    return {
-        'title': item.find('title').text if item.find('title') is not None else '',
-        'author': item.find('author').text if item.find('author') is not None else '',
-        'pubDate': item.find('pubDate').text if item.find('pubDate') is not None else '',
-        'link': item.find('link').text if item.find('link') is not None else '',
-        'categories': [cat.text for cat in item.findall('category')],
-        'description': item.find('description').text if item.find('description') is not None else ''
+    result = {}
+
+    # Handle all possible fields
+    fields = {
+        'title': 'title',
+        'author': 'author',
+        'pubDate': 'pubDate',
+        'link': 'link',
+        'description': 'description'
     }
+
+    for field, key in fields.items():
+        elem = item.find(field)
+        if elem is not None and elem.text:
+            result[key] = elem.text
+        elif not json_output:  # Include empty fields only for text output
+            result[key] = ''
+
+    # Handle categories
+    categories = item.findall('category')
+    if categories or not json_output:
+        result['categories'] = [cat.text for cat in categories]
+
+    return result
 
 
 def format_text_output(data: dict) -> List[str]:
