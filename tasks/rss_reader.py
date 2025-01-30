@@ -99,42 +99,42 @@ def format_text_output(data: dict) -> List[str]:
     output = []
 
     # Channel information
-    output.extend([
-        f"Feed: {unescape(data['title'])}",
-        f"Link: {data['link']}",
-    ])
-
-    if data['lastBuildDate']:
+    if data.get('title'):
+        output.append(f"Feed: {unescape(data['title'])}")
+    if data.get('link'):
+        output.append(f"Link: {data['link']}")
+    if data.get('lastBuildDate'):
         output.append(f"Last Build Date: {data['lastBuildDate']}")
-    if data['pubDate']:
+    if data.get('pubDate'):
         output.append(f"Publish Date: {data['pubDate']}")
-    if data['language']:
+    if data.get('language'):
         output.append(f"Language: {data['language']}")
-    if data['categories']:
+    if data.get('categories'):
         output.append(f"Categories: {', '.join(data['categories'])}")
-    if data['managingEditor']:
+    if data.get('managingEditor'):
         output.append(f"Editor: {data['managingEditor']}")
-    if data['description']:
+    if data.get('description'):
         output.append(f"Description: {unescape(data['description'])}")
 
-    output.append("")  # Empty line between channel and items
+    if data.get('items'):
+        output.append("")  # Empty line between channel and items
 
     # Items
     for item in data['items']:
         item_output = []
-        if item['title']:
+        if item.get('title'):
             item_output.append(f"Title: {unescape(item['title'])}")
-        if item['author']:
+        if item.get('author'):
             item_output.append(f"Author: {item['author']}")
-        if item['pubDate']:
+        if item.get('pubDate'):
             item_output.append(f"Published: {item['pubDate']}")
-        if item['link']:
+        if item.get('link'):
             item_output.append(f"Link: {item['link']}")
-        if item['categories']:
+        if item.get('categories'):
             item_output.append(f"Categories: {', '.join(item['categories'])}")
 
         output.extend(item_output)
-        if item['description']:
+        if item.get('description'):
             output.append("")  # Empty line before description
             output.append(unescape(item['description']))
         output.append("")  # Empty line between items
