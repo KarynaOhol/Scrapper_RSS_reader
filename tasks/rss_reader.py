@@ -1,5 +1,4 @@
-# You shouldn't change  name of function or their arguments
-# but you can change content of the initial functions.
+
 from argparse import ArgumentParser
 from typing import List, Optional, Sequence
 import requests
